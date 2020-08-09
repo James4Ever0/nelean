@@ -1,7 +1,7 @@
 from setuptools import setup
 from pathlib import Path
 
-GEN_version = "0.0.2"
+GEN_version = "0.0.3"
 READ_name = "nelean"
 
 here = Path(__file__).parent.resolve()
