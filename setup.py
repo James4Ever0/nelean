@@ -19,6 +19,6 @@ setup(
     long_description=(here / "readme.md").read_text(),
     long_description_content_type="text/markdown",
     classifiers=[],
-    packages=["nelean"],
+    py_modules=["nelean"],
     entry_points={"console_scripts": ["nelean=nelean:main"]},
 )
