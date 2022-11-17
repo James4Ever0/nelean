@@ -17,7 +17,8 @@ def useful_patterns(data):
         ]
     sexp_start=r"[^#](\([ ]+[^ ^\)])"
     nsexp_starts=[r"[{][^ ^}]",r"[\[][^ ^\]]",r"#*(\([ ]+[^ ^\)])"]
-    comments=r";.*"
+    # comments=r";.*" # this is dumb. really.
+    comments = r"(?<!\\\\);(;{1,3})?"
     # what do you want to do about comments? just ignore?
     for exp, flag in[(comments, "comment")]+[(x, "string") for x in sexps]+[(sexp_start,"fix_s")]+[(nsexp_start,"fix_ns") for nsexp_start in nsexp_starts]:
         exp0=re.compile(exp)
@@ -59,7 +60,7 @@ def useful_patterns(data):
                                     dataDict[comment_id]=subval
                                     break
                             # replace it with id.
-                            data = data.replace(subval, comment_id)
+                            data = data.replace(subval, f";{comment_id}")
                     except:
                         pass
         # print("___")
@@ -70,9 +71,10 @@ def useful_patterns(data):
     # print("DATADICT:", dataDict)
     # print("____CODE____")
     # recover comments here.
-    for key in dataDict.keys():
-        if key.startswith("comment_"):
-            data = data.replace(key, dataDict[key])
+    # no need to recover comments here.
+    # for key in dataDict.keys():
+    #     if key.startswith("comment_"):
+    #         data = data.replace(key, dataDict[key])
     # print(data)
     return data, dataDict
 
@@ -95,7 +97,7 @@ def reparse_fix_code(code):
             stripped_next_line = mcode[index+1].strip()
             for signal in [":","#^"]:
                 if stripped_line.startswith(signal) and len(stripped_line) < 10:
-                    if not stripped_next_line.startswith(signal) and len(stripped_next_line) < 10 and (not any([stripped_next_line.startswith(x) for x in ["[","]","{","}","(",")",";"]])):
+                    if not stripped_next_line.startswith(signal) and len(stripped_next_line) < 10 and (not any([stripped_next_line.startswith(x) for x in (["[","]","{","}","(",")",";"] if signal == ":" else [";"])])):
                         # next line will be merged and stripped.
                         cont=True
                         line += " "+ stripped_next_line
@@ -111,7 +113,8 @@ def reparse_fix_code(code):
 def final_fix(data):
     # mcode = code.split('\n')
     dataDict = {}
-    comments=r";.*"
+    # comments=r";.*"
+    comments = r"(?<!\\\\);(;{1,3})?"
     # so it contains space.
     # nsexp_starts=[r"[{][ ^}]",r"[\[][ ^\]]",r"#*(\([ ]+[ ^\)])"]
     nsexp_starts = [r"(\([ ]+[^ ^\)])",r"({[ ]+[^ ^}])", r"(\[[ ]+[^ ^\]])"]
@@ -533,7 +536,9 @@ def main():
         new_data, dataDict_2 = final_fix(new_data)
         # use dataDict_1 to recover my strings.
         for key in dataDict_1.keys():
-            if key.startswith("string_"):
+            if key.startswith("comment_"):
+                new_data = new_data.replace(f";{key}", dataDict_1[key])
+            elif key.startswith("string_"):
                 new_data = new_data.replace(key, dataDict_1[key])
 
         if args.file and args.inplace:
