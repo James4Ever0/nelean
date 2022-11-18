@@ -5,7 +5,7 @@ import tempfile
 # import shutil
 import re
 
-def extract_comments(data):
+def extract_comments(data,dataDict):
     # use hy instead of regexp to extract comments, when avaliable.
 # this is automatic behavior, when hy fails, we use regexp instead.
     import hy.reader
@@ -27,15 +27,47 @@ def extract_comments(data):
             haserror = True # may need extra processing.
             break
     # now let's harvest comments.
-    cmt = r.comments_line
+    # cmt = r.comments_line
     # need to sort them
-    cmt.sort(key = lambda x:-len(x)) # longest first.
+    # cmt.sort(key = lambda x:-len(x)) # longest first.
     # now you replace this shit.
     # for comment in cmt:
     #     print("____")
     #     print("COMMENT:")
     #     print([comment])
-    return cmt, haserror
+
+    cmt = r.comments_line
+    cmtpos = r.comments_start
+    lines = data.split("\n")
+    for mindex, (lineno, charindex) in enumerate(cmtpos):
+        mlineno = lineno-1 # exactly the location of the line with comment
+        mcharindex = charindex-1
+        mline = lines[mlineno]
+        mcomment = mline[mcharindex:] # extracting exactly the comment
+        mline_nocomment = mline[:mcharindex]
+        mcomment_extracted = cmt[mindex]
+        # print("____")
+        while True:
+            import uuid
+            mhash = str(uuid.uuid4()).split("-")[0]
+            comment_id = f"comment_{mhash}" # this method may need to be reused.
+            if comment_id not in dataDict.keys():
+                # place this value in dataDict.
+                dataDict[comment_id]=mcomment
+                break
+                    # replace it with id.
+        myfixedline = mline_nocomment+f";{comment_id}"
+        lines[mlineno] = myfixedline
+        # print("CMT_SPLITED:", [mcomment])
+        # print("CMT_ACTUAL:", [mcomment_extracted])
+    # # need to sort them
+    # cmt.sort(key = lambda x:-len(x)) # longest first.
+    # now you replace this shit.
+    # for comment in cmt:
+    data = "\n".join(lines)
+    # print(data)
+    # return cmt, haserror
+    return data, dataDict, haserror
 
 
 def useful_patterns(data):
@@ -52,19 +84,19 @@ def useful_patterns(data):
     nsexp_starts=[r"[{][^ ^}]",r"[\[][^ ^\]]",r"#*(\([ ]+[^ ^\)])"]
     comments=r"[^\\](;.*$)" # this is dumb. really.
     #comments = r"(?<!\\\\);(;{1,3})?"
-    cmts, haserror = extract_comments(data)
+    data, dataDict, haserror = extract_comments(data, dataDict)
 
-    for cmt in cmts:
-        while True:
-            import uuid
-            mhash = str(uuid.uuid4()).split("-")[0]
-            comment_id = f"comment_{mhash}" # this method may need to be reused.
-            if comment_id not in dataDict.keys():
-                # place this value in dataDict.
-                dataDict[comment_id]=cmt
-                break
-                    # replace it with id.
-        data = data.replace(cmt, f";{comment_id}")
+    # for cmt in cmts:
+    #     while True:
+    #         import uuid
+    #         mhash = str(uuid.uuid4()).split("-")[0]
+    #         comment_id = f"comment_{mhash}" # this method may need to be reused.
+    #         if comment_id not in dataDict.keys():
+    #             # place this value in dataDict.
+    #             dataDict[comment_id]=cmt
+    #             break
+    #                 # replace it with id.
+    #     data = data.replace(cmt, f";{comment_id}")
         # data = data.replace(cmt,mhash)
     # what do you want to do about comments? just ignore?
     for exp, flag in[(comments, "comment")]+[(x, "string") for x in sexps]+[(sexp_start,"fix_s")]+[(nsexp_start,"fix_ns") for nsexp_start in nsexp_starts]:
