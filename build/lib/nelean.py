@@ -473,7 +473,7 @@ def write(out, at, indent):
         out.write(at.data)
 
 
-def main():
+def main(minput=None, restore_default:bool=False):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-f", "--file", help="Format file rather than stdin.",
@@ -515,13 +515,25 @@ def main():
         action="store_true",
     )
     args = parser.parse_args()
+    if restore_default:
+        args.debug_scores = False
+        args.preserve=False
+        args.factor = 3
+        args.indent = "    "
+        args.max_score  =9
+        args.max_width = 500 # warning! this may need to change.
+        args.file=None
+        args.inplace=False
     global factor, it
     factor = args.factor
     it = args.indent
     dest = tempfile.NamedTemporaryFile(mode="wt")
+    import io
     with dest:
+        if minput:
+            source = io.StringIO(minput)
     # dest = tempfile.NamedTemporaryFile(mode="wt", delete=False)
-        if args.file:
+        elif args.file:
             source = open(args.file, "rt")
             if args.inplace: # change the dest.
                 pass
@@ -639,8 +651,9 @@ def main():
                 new_data = new_data.replace(f";{key}", dataDict_1[key])
             elif key.startswith("string_"):
                 new_data = new_data.replace(key, dataDict_1[key])
-
-        if args.file and args.inplace:
+        if minput:
+            return new_data
+        elif args.file and args.inplace:
             # shutil.move(dest.name, args.file)
             with open(args.file,'w+') as f:
                 f.write(new_data)
@@ -649,3 +662,7 @@ def main():
             # not from stdout?
             print(new_data, end="")
             # print(";; FROM STDOUT")
+
+def format_hy(minput:str):
+    source_code_formatted = main(minput=minput, restore_default=True)
+    return source_code_formatted
