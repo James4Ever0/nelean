@@ -5,6 +5,39 @@ import tempfile
 # import shutil
 import re
 
+def extract_comments(data):
+    # use hy instead of regexp to extract comments, when avaliable.
+# this is automatic behavior, when hy fails, we use regexp instead.
+    import hy.reader
+    # filename = "my_bad_code.hy"
+    import io
+    haserror =False
+# with open(filename, 'r') as f:
+    # data = f.read()
+    stream = io.StringIO(data)
+    r = hy.reader.HyReader()
+    g = r.parse(stream)
+    while True:
+        try:
+            next(g)
+        except StopIteration:
+            break
+        except Exception as e:
+            # print("EXCEPTION?", type(e)) # just not stop iteration.
+            haserror = True # may need extra processing.
+            break
+    # now let's harvest comments.
+    cmt = r.comments_line
+    # need to sort them
+    cmt.sort(key = lambda x:-len(x)) # longest first.
+    # now you replace this shit.
+    # for comment in cmt:
+    #     print("____")
+    #     print("COMMENT:")
+    #     print([comment])
+    return cmt, haserror
+
+
 def useful_patterns(data):
     dataDict = {}
 # with open("test2.hy","r") as f:
@@ -17,23 +50,45 @@ def useful_patterns(data):
         ]
     sexp_start=r"[^#](\([ ]+[^ ^\)])"
     nsexp_starts=[r"[{][^ ^}]",r"[\[][^ ^\]]",r"#*(\([ ]+[^ ^\)])"]
-    comments=r";.*$" # this is dumb. really.
+    comments=r"[^\\](;.*$)" # this is dumb. really.
     #comments = r"(?<!\\\\);(;{1,3})?"
+    cmts, haserror = extract_comments(data)
+
+    for cmt in cmts:
+        while True:
+            import uuid
+            mhash = str(uuid.uuid4()).split("-")[0]
+            comment_id = f"comment_{mhash}" # this method may need to be reused.
+            if comment_id not in dataDict.keys():
+                # place this value in dataDict.
+                dataDict[comment_id]=cmt
+                break
+                    # replace it with id.
+        data = data.replace(cmt, f";{comment_id}")
+        # data = data.replace(cmt,mhash)
     # what do you want to do about comments? just ignore?
     for exp, flag in[(comments, "comment")]+[(x, "string") for x in sexps]+[(sexp_start,"fix_s")]+[(nsexp_start,"fix_ns") for nsexp_start in nsexp_starts]:
         exp0=re.compile(exp)
         #vals=exp0.findall(data)
         if flag=="comment":
+            if not haserror: # no error? just continue please?
+                continue
 #            print(vals)
             lns=[l for l in data.split("\n")]
             newln=[]
             for l in lns:
-                vals=exp0.findall(l)
+                l0 = l.strip()
+                if l0.startswith(";"):
+                    vals = [l0]
+                else:
+                    vals = exp0.findall(l)
                 for subval in vals:
+                    if subval.startswith(";comment_"): # already processed before.
+                        continue
                     while True:
                         import uuid
                         mhash = str(uuid.uuid4()).split("-")[0]
-                        comment_id = f"comment_{mhash}"
+                        comment_id = f"comment_{mhash}" # this method may need to be reused.
                         if comment_id not in dataDict.keys():
                             # place this value in dataDict.
                             dataDict[comment_id]=subval
@@ -122,7 +177,7 @@ def reparse_fix_code(code):
 def final_fix(data):
     # mcode = code.split('\n')
     dataDict = {}
-    comments=r";.*$"
+    comments=r";comment_.*$" # all comments have been processed in this way.
     # this is very very wrong.
     #comments = r"(?<!\\\\);(;{1,3})?"
     # so it contains space.

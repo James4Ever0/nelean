@@ -3,10 +3,9 @@ Name: nelean
 Version: 0.0.5
 Summary: A deterministic Lisp formatter
 Home-page: https://gitlab.com/rendaw/nelean
+Download-URL: https://gitlab.com/rendaw/nelean/-/archive/v0.0.5/nelean-v0.0.5.tar.gz
 Author: rendaw
 License: MIT
-Download-URL: https://gitlab.com/rendaw/nelean/-/archive/v0.0.5/nelean-v0.0.5.tar.gz
-Platform: UNKNOWN
 Description-Content-Type: text/markdown
 
 # A Lisp formatter
@@ -39,4 +38,3 @@ Nelean has no dependencies, so you can also just copy `nelean.py` somewhere in y
 Additional options are availabile via the command line help.
 
 The name comes from a famous professor of penmanship I found on Wikipedia, [D'Nelean](https://en.wikipedia.org/wiki/D%27Nealian).
-
