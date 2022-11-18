@@ -193,7 +193,9 @@ def reparse_fix_code(code):
             stripped_next_line = mcode[index+1].strip()
             for signal in [":","#^"]:
                 if stripped_line.startswith(signal) and len(stripped_line) < 10:
-                    if not stripped_next_line.startswith(signal) and len(stripped_next_line) < 10 and (not any([stripped_next_line.startswith(x) for x in (["[","]","{","}","(",")",";"] if signal == ":" else [";"])])):
+                    # mfunc = (["[","]","{","}","(",")",";"] if signal == ":" else [";"])
+                    mfunc = [";"]
+                    if not stripped_next_line.startswith(signal) and len(stripped_next_line) < 10 and (not any([stripped_next_line.startswith(x) for x in mfunc])):
                         # next line will be merged and stripped.
                         cont=True
                         line += " "+ stripped_next_line
