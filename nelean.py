@@ -17,12 +17,32 @@ def useful_patterns(data):
         ]
     sexp_start=r"[^#](\([ ]+[^ ^\)])"
     nsexp_starts=[r"[{][^ ^}]",r"[\[][^ ^\]]",r"#*(\([ ]+[^ ^\)])"]
-    # comments=r";.*" # this is dumb. really.
-    comments = r"(?<!\\\\);(;{1,3})?"
+    comments=r";.*$" # this is dumb. really.
+    #comments = r"(?<!\\\\);(;{1,3})?"
     # what do you want to do about comments? just ignore?
     for exp, flag in[(comments, "comment")]+[(x, "string") for x in sexps]+[(sexp_start,"fix_s")]+[(nsexp_start,"fix_ns") for nsexp_start in nsexp_starts]:
         exp0=re.compile(exp)
-        vals=exp0.findall(data)
+        #vals=exp0.findall(data)
+        if flag=="comment":
+#            print(vals)
+            lns=[l for l in data.split("\n")]
+            newln=[]
+            for l in lns:
+                vals=exp0.findall(l)
+                for subval in vals:
+                    while True:
+                        import uuid
+                        mhash = str(uuid.uuid4()).split("-")[0]
+                        comment_id = f"comment_{mhash}"
+                        if comment_id not in dataDict.keys():
+                            # place this value in dataDict.
+                            dataDict[comment_id]=subval
+                            break
+                    # replace it with id.
+                    l = l.replace(subval, f";{comment_id}")
+                newln.append(l)
+            data="\n".join(newln)
+            continue
         for val in vals:
             if type(val) == str: # or it will be tuple.
                 val = [val]
@@ -50,17 +70,6 @@ def useful_patterns(data):
                         elif flag == "fix_ns":
                             fixed_subval = subval[0]+" "+subval[1:]
                             data = data.replace(subval, fixed_subval)
-                        elif flag =="comment":
-                            while True:
-                                import uuid
-                                mhash = str(uuid.uuid4()).split("-")[0]
-                                comment_id = f"comment_{mhash}"
-                                if comment_id not in dataDict.keys():
-                                    # place this value in dataDict.
-                                    dataDict[comment_id]=subval
-                                    break
-                            # replace it with id.
-                            data = data.replace(subval, f";{comment_id}")
                     except:
                         pass
         # print("___")
@@ -113,8 +122,9 @@ def reparse_fix_code(code):
 def final_fix(data):
     # mcode = code.split('\n')
     dataDict = {}
-    # comments=r";.*"
-    comments = r"(?<!\\\\);(;{1,3})?"
+    comments=r";.*$"
+    # this is very very wrong.
+    #comments = r"(?<!\\\\);(;{1,3})?"
     # so it contains space.
     # nsexp_starts=[r"[{][ ^}]",r"[\[][ ^\]]",r"#*(\([ ]+[ ^\)])"]
     nsexp_starts = [r"(\([ ]+[^ ^\)])",r"({[ ]+[^ ^}])", r"(\[[ ]+[^ ^\]])"]
@@ -441,6 +451,8 @@ def main():
         # code from useful_patterns
 
         pre_1, dataDict_1= useful_patterns(pre_1)
+#        print(pre_1)
+#        exit()
         import io
         source = io.StringIO(pre_1)
 
