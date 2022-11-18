@@ -25,7 +25,9 @@ let g:neoformat_enabled_scheme = ['n']
 nnoremap L :Neoformat<Cr>
 ```
 
-Nelean has no dependencies, so you can also just copy `nelean.py` somewhere in your `PATH`.
+Nelean requires your hy to be modified. Install modified hy from [here](https://github.com/James4Ever0/hy)
+
+You can copy `nelean.py` somewhere in your `PATH`, as long as you have dependencies resolved.
 
 Additional options are availabile via the command line help.
 
