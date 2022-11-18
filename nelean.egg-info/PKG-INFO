@@ -8,22 +8,24 @@ Author: rendaw
 License: MIT
 Description-Content-Type: text/markdown
 
-# A Lisp formatter
+# A Hy source code formatter
 
 * Deterministic, like Black and Prettier!
 * Tolerable defaults!
 * Works with at least one Lisp dialect!
 
-Nealean is a deterministic Lisp formatter.  It chops your source up and puts it back together again, better.
+Nealean is a deterministic Hy formatter.  It chops your source up and puts it back together again, better.
 
 Install with:
 ```
-pip3 install --user nelean
+git clone https://github.com/James4Ever0/nelean
+cd nelean
+pip3 install .
 ```
 
 Uninstall with:
 ```
-pip3 uninstall --user nelean
+pip3 uninstall nelean
 ```
 
 Use with Vim with [Neoformat](https://github.com/sbdchd/neoformat) with the hotkey "shift-L" with:
@@ -33,7 +35,9 @@ let g:neoformat_enabled_scheme = ['n']
 nnoremap L :Neoformat<Cr>
 ```
 
-Nelean has no dependencies, so you can also just copy `nelean.py` somewhere in your `PATH`.
+Nelean requires your hy to be modified. Install modified hy from [here](https://github.com/James4Ever0/hy)
+
+You can copy `nelean.py` somewhere in your `PATH`, as long as you have dependencies resolved.
 
 Additional options are availabile via the command line help.
 

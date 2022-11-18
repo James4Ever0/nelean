@@ -69,7 +69,6 @@ def useful_patterns(data):
     # what do you want to do about comments? just ignore?
     for exp, flag in[(comments, "comment")]+[(x, "string") for x in sexps]+[(sexp_start,"fix_s")]+[(nsexp_start,"fix_ns") for nsexp_start in nsexp_starts]:
         exp0=re.compile(exp)
-        #vals=exp0.findall(data)
         if flag=="comment":
             if not haserror: # no error? just continue please?
                 continue
@@ -98,6 +97,7 @@ def useful_patterns(data):
                 newln.append(l)
             data="\n".join(newln)
             continue
+        vals=exp0.findall(data)
         for val in vals:
             if type(val) == str: # or it will be tuple.
                 val = [val]
