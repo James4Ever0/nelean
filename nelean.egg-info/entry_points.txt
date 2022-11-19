@@ -1,2 +1,3 @@
 [console_scripts]
 nelean = nelean:main
+
